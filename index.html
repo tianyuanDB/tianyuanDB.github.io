@@ -100,83 +100,31 @@
 <h3 id="1-2-Consistency-一致性"><a href="#1-2-Consistency-一致性" class="headerlink" title="1.2 Consistency 一致性"></a>1.2 Consistency 一致性</h3><p>事务执行前后，数据库从一个一致性状态变为另一个一致性状态。几个并行执行的事务，其执行结果必须与按某一顺序串行执行的结果相一致。</p>
 <h3 id="1-3-Isolation-隔离性"><a href="#1-3-Isolation-隔离性" class="headerlink" title="1.3 Isolation 隔离性"></a>1.3 Isolation 隔离性</h3><p>并发执行的事务之间应该相互隔离，互不影响。事务的执行不受其他事务的干扰，事务执行的中间结果对其他事务必须是透明的。</p>
 <h3 id="1-4-Durability-持久性"><a href="#1-4-Durability-持久性" class="headerlink" title="1.4 Durability 持久性"></a>1.4 Durability 持久性</h3><p>事务一旦提交，对数据库的修改是永久性的，即使系统故障也能够保证数据的持久性。对于任意已提交事务，系统必须保证该事务对数据库的改变不被丢失，即使数据库出现故障。</p>
-<h2 id="2-数据库的隔离级别"><a href="#2-数据库的隔离级别" class="headerlink" title="2 数据库的隔离级别"></a>2 数据库的隔离级别</h2><h3 id="2-1-事务并发存在的问题"><a href="#2-1-事务并发存在的问题" class="headerlink" title="2.1 事务并发存在的问题"></a>2.1 事务并发存在的问题</h3><p>问题1：脏读<br>事务A读到了事务B还未提交的数据<br><img src="/Database-Transaction/img.png" alt="img.png"></p>
-<p>问题2：不可重复读<br>事务A在对同一条数据进行两次读取之间，事务B修改了这条数据并进行了完整提交，A事务的两次读取读到了两次不同的数据。<br><img src="/Database-Transaction/img_1.png" alt="img_1.png"></p>
-<p>问题3：幻读<br>事务A在对同一集合数据进行两次读取之间，事务B在集合中增加或删除了部分数据，导致A事务的两次读取读到了数量不一致的行数据。<br><img src="/Database-Transaction/img_2.png" alt="img_2.png"></p>
-<h3 id="2-2-隔离级别"><a href="#2-2-隔离级别" class="headerlink" title="2.2 隔离级别"></a>2.2 隔离级别</h3><p><img src="/Database-Transaction/img_4.png" alt="img_4.png"></p>
+<h2 id="2-数据库的隔离级别"><a href="#2-数据库的隔离级别" class="headerlink" title="2 数据库的隔离级别"></a>2 数据库的隔离级别</h2><h3 id="2-1-事务并发存在的问题"><a href="#2-1-事务并发存在的问题" class="headerlink" title="2.1 事务并发存在的问题"></a>2.1 事务并发存在的问题</h3><p>问题1：脏读<br>事务A读到了事务B还未提交的数据<br><img src="/2024/04/06/Database-Transaction/img.png" alt="img.png"></p>
+<p>问题2：不可重复读<br>事务A在对同一条数据进行两次读取之间，事务B修改了这条数据并进行了完整提交，A事务的两次读取读到了两次不同的数据。<br><img src="/2024/04/06/Database-Transaction/img_1.png" alt="img_1.png"></p>
+<p>问题3：幻读<br>事务A在对同一集合数据进行两次读取之间，事务B在集合中增加或删除了部分数据，导致A事务的两次读取读到了数量不一致的行数据。<br><img src="/2024/04/06/Database-Transaction/img_2.png" alt="img_2.png"></p>
+<h3 id="2-2-隔离级别"><a href="#2-2-隔离级别" class="headerlink" title="2.2 隔离级别"></a>2.2 隔离级别</h3><p><img src="/2024/04/06/Database-Transaction/img_4.png" alt="img_4.png"></p>
 <h2 id="3-Undo-Log"><a href="#3-Undo-Log" class="headerlink" title="3 Undo Log"></a>3 Undo Log</h2><p>Undo log是数据库实现事务回滚的关键。</p>
-<h3 id="3-1-写入时机"><a href="#3-1-写入时机" class="headerlink" title="3.1 写入时机"></a>3.1 写入时机</h3><p>SQL 经过执行器后，就会生成Undo Log并写入磁盘，之后再执行内存数据写入，记录Redo Log，数据刷盘等。<br><img src="/Database-Transaction/img_5.png" alt="img_5.png"></p>
+<h3 id="3-1-写入时机"><a href="#3-1-写入时机" class="headerlink" title="3.1 写入时机"></a>3.1 写入时机</h3><p>SQL 经过执行器后，就会生成Undo Log并写入磁盘，之后再执行内存数据写入，记录Redo Log，数据刷盘等。<br><img src="/2024/04/06/Database-Transaction/img_5.png" alt="img_5.png"></p>
 <h3 id="3-2-Undo-Log格式"><a href="#3-2-Undo-Log格式" class="headerlink" title="3.2 Undo Log格式"></a>3.2 Undo Log格式</h3><p>每条Undo Log信息分为两个部分，基础信息和操作信息<br>基础信息包括Undo Log类型，表id等，操作信息根据Undo Log的类型不同会有所改变。</p>
-<h4 id="3-2-1-新增时的Undo-Log格式"><a href="#3-2-1-新增时的Undo-Log格式" class="headerlink" title="3.2.1 新增时的Undo Log格式"></a>3.2.1 新增时的Undo Log格式</h4><p>新增操作只需要记录主键值，主键长度等主键信息。<br><img src="/Database-Transaction/img_6.png" alt="img_6.png"></p>
-<h4 id="3-2-2-删除时的Undo-Log格式"><a href="#3-2-2-删除时的Undo-Log格式" class="headerlink" title="3.2.2 删除时的Undo Log格式"></a>3.2.2 删除时的Undo Log格式</h4><p>删除操作的Undo Log除了主键信息外，还需要记录旧事务id，和旧的roll_pointer信息，用来构建有序的Undo版本链。<br><img src="/Database-Transaction/img_7.png" alt="img_7.png"></p>
-<h4 id="3-2-3-更新时的Undo-Log格式"><a href="#3-2-3-更新时的Undo-Log格式" class="headerlink" title="3.2.3 更新时的Undo Log格式"></a>3.2.3 更新时的Undo Log格式</h4><p>更新操作的Undo Log操作信息，根据是否更新主键有所不同。<br>如果不更新主键，和删除操作类似，记录主键信息，旧事务id，旧的roll_pointer信息和被更新的信息。<br><img src="/Database-Transaction/img_8.png" alt="img_8.png"><br><br>如果更新主键，则会记录两条Undo Log，一条删除的，一条新增的。<br><img src="/Database-Transaction/img_9.png" alt="img_9.png"></p>
-<h4 id="3-2-4-Undo-Log页"><a href="#3-2-4-Undo-Log页" class="headerlink" title="3.2.4 Undo Log页"></a>3.2.4 Undo Log页</h4><p>Undo Page Header:记录Undo页类型，Log偏移位置，下一页链表引用等信息 <br><br>Undo Log Segment Header:记录回滚段信息 <br><br>Undo Log Header:事务相关信息，重用Undo页信息<br><br><img src="/Database-Transaction/img_10.png" alt="img_10.png"></p>
-<p>如果一个事务很大，一个页记录不下，就会分为多个页存储Undo记录，用Undo Page Header里的下一页链表引用链接多个Undo页。<br><img src="/Database-Transaction/img_11.png" alt="img_11.png"></p>
-<h3 id="3-3-Undo-Log和数据行的关系"><a href="#3-3-Undo-Log和数据行的关系" class="headerlink" title="3.3 Undo Log和数据行的关系"></a>3.3 Undo Log和数据行的关系</h3><h4 id="3-3-1-新增"><a href="#3-3-1-新增" class="headerlink" title="3.3.1 新增"></a>3.3.1 新增</h4><p>Insert Undo链中的每一条Undo Log都关联一条数据行，数据行中用roll_pointer关联Undo Log。<br><br><img src="/Database-Transaction/img_12.png" alt="img_12.png"></p>
-<h4 id="3-3-2-更新和删除"><a href="#3-3-2-更新和删除" class="headerlink" title="3.3.2 更新和删除"></a>3.3.2 更新和删除</h4><p>每次更新，都会通过数据行中的roll_pointer进行关联，从而构成一条Undo Log版本链，回滚的时候就可以依序撤销。<br><br><img src="/Database-Transaction/img_13.png" alt="img_13.png"></p>
+<h4 id="3-2-1-新增时的Undo-Log格式"><a href="#3-2-1-新增时的Undo-Log格式" class="headerlink" title="3.2.1 新增时的Undo Log格式"></a>3.2.1 新增时的Undo Log格式</h4><p>新增操作只需要记录主键值，主键长度等主键信息。<br><img src="/2024/04/06/Database-Transaction/img_6.png" alt="img_6.png"></p>
+<h4 id="3-2-2-删除时的Undo-Log格式"><a href="#3-2-2-删除时的Undo-Log格式" class="headerlink" title="3.2.2 删除时的Undo Log格式"></a>3.2.2 删除时的Undo Log格式</h4><p>删除操作的Undo Log除了主键信息外，还需要记录旧事务id，和旧的roll_pointer信息，用来构建有序的Undo版本链。<br><img src="/2024/04/06/Database-Transaction/img_7.png" alt="img_7.png"></p>
+<h4 id="3-2-3-更新时的Undo-Log格式"><a href="#3-2-3-更新时的Undo-Log格式" class="headerlink" title="3.2.3 更新时的Undo Log格式"></a>3.2.3 更新时的Undo Log格式</h4><p>更新操作的Undo Log操作信息，根据是否更新主键有所不同。<br>如果不更新主键，和删除操作类似，记录主键信息，旧事务id，旧的roll_pointer信息和被更新的信息。<br><img src="/2024/04/06/Database-Transaction/img_8.png" alt="img_8.png"><br><br>如果更新主键，则会记录两条Undo Log，一条删除的，一条新增的。<br><img src="/2024/04/06/Database-Transaction/img_9.png" alt="img_9.png"></p>
+<h4 id="3-2-4-Undo-Log页"><a href="#3-2-4-Undo-Log页" class="headerlink" title="3.2.4 Undo Log页"></a>3.2.4 Undo Log页</h4><p>Undo Page Header:记录Undo页类型，Log偏移位置，下一页链表引用等信息 <br><br>Undo Log Segment Header:记录回滚段信息 <br><br>Undo Log Header:事务相关信息，重用Undo页信息<br><br><img src="/2024/04/06/Database-Transaction/img_10.png" alt="img_10.png"></p>
+<p>如果一个事务很大，一个页记录不下，就会分为多个页存储Undo记录，用Undo Page Header里的下一页链表引用链接多个Undo页。<br><img src="/2024/04/06/Database-Transaction/img_11.png" alt="img_11.png"></p>
+<h3 id="3-3-Undo-Log和数据行的关系"><a href="#3-3-Undo-Log和数据行的关系" class="headerlink" title="3.3 Undo Log和数据行的关系"></a>3.3 Undo Log和数据行的关系</h3><h4 id="3-3-1-新增"><a href="#3-3-1-新增" class="headerlink" title="3.3.1 新增"></a>3.3.1 新增</h4><p>Insert Undo链中的每一条Undo Log都关联一条数据行，数据行中用roll_pointer关联Undo Log。<br><br><img src="/2024/04/06/Database-Transaction/img_12.png" alt="img_12.png"></p>
+<h4 id="3-3-2-更新和删除"><a href="#3-3-2-更新和删除" class="headerlink" title="3.3.2 更新和删除"></a>3.3.2 更新和删除</h4><p>每次更新，都会通过数据行中的roll_pointer进行关联，从而构成一条Undo Log版本链，回滚的时候就可以依序撤销。<br><br><img src="/2024/04/06/Database-Transaction/img_13.png" alt="img_13.png"></p>
 <h2 id="4-MVCC"><a href="#4-MVCC" class="headerlink" title="4 MVCC"></a>4 MVCC</h2><p>MVCC(multi-version concurrency control) 多版本并发控制机制<br>能解决脏读和不可重复度等事务之前的读写问题，同时其实现比锁机制更高效。</p>
 <p>MVCC的实现是基于[Undo Log版本链]和[Readview]达成的</p>
-<h3 id="4-1-Undo-Log版本链"><a href="#4-1-Undo-Log版本链" class="headerlink" title="4.1 Undo Log版本链"></a>4.1 Undo Log版本链</h3><p>每条Undo Log之间通过roll_pointer关联，数据行再用roll_pointer关联Undo Log，这样构成了Undo Log版本链<br><img src="/Database-Transaction/img_14.png" alt="img_14.png"><br>对于每一条记录，都有一个版本链，体现了这条记录的所有变更。</p>
+<h3 id="4-1-Undo-Log版本链"><a href="#4-1-Undo-Log版本链" class="headerlink" title="4.1 Undo Log版本链"></a>4.1 Undo Log版本链</h3><p>每条Undo Log之间通过roll_pointer关联，数据行再用roll_pointer关联Undo Log，这样构成了Undo Log版本链<br><img src="/2024/04/06/Database-Transaction/img_14.png" alt="img_14.png"><br>对于每一条记录，都有一个版本链，体现了这条记录的所有变更。</p>
 <h3 id="4-2-Readview"><a href="#4-2-Readview" class="headerlink" title="4.2 Readview"></a>4.2 Readview</h3><p>Readview是一个视图，一条Select命令，就会构造一个Readview，里面记录了该数据版本链的一些统计值。<br>统计信息：<br><br>1.当前所有活跃的事务集合m_ids，即统计所有没有提交的事务<br><br>2.集合中最小事务min_trx_id<br><br>3.下一个要被分配的事务max_trx_id<br><br>4.创建这个Readview的事务creator_trx_id<br></p>
 <p>判断当前事务读取版本链上的那一条记录，有一个四步原则<br><br>1.事务id是否等于creator_trx_id，如果是则可以访问<br><br>2.若事务id小于min_trx_id，则代表当前事务在Readview生成之前已提交，可以访问<br><br>3.若事务id大于max_trx_id，则代表该版本在Readview生成之后才开启，不可以访问，遍历下一个版本<br><br>4.若事务id不在活跃的事务集合m_ids中，代表创建Readview时该版本已提交，可以访问<br></p>
-<p><img src="/Database-Transaction/img_15.png" alt="img_15.png"></p>
+<p><img src="/2024/04/06/Database-Transaction/img_15.png" alt="img_15.png"></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2024/04/06/Database-Transaction/" data-id="clunvm9zo0000h8utedph3k9o" data-title="Database Transaction" class="article-share-link"><span class="fa fa-share">分享</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-数据库事务" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2024/03/31/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/" class="article-date">
-  <time class="dt-published" datetime="2024-03-31T03:04:15.919Z" itemprop="datePublished">2024-03-31</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="数据库事务"><a href="#数据库事务" class="headerlink" title="数据库事务"></a>数据库事务</h1><h2 id="1-事务四大特性-ACID"><a href="#1-事务四大特性-ACID" class="headerlink" title="1 事务四大特性 ACID"></a>1 事务四大特性 ACID</h2><h3 id="1-1-Atomicity-原子性"><a href="#1-1-Atomicity-原子性" class="headerlink" title="1.1 Atomicity 原子性"></a>1.1 Atomicity 原子性</h3><p>事务是一个不可分割的工作单位，事务中的全部操作在数据库中是不可分割的，要么全部完成，要么全部不执行。</p>
-<h3 id="1-2-Consistency-一致性"><a href="#1-2-Consistency-一致性" class="headerlink" title="1.2 Consistency 一致性"></a>1.2 Consistency 一致性</h3><p>事务执行前后，数据库从一个一致性状态变为另一个一致性状态。几个并行执行的事务，其执行结果必须与按某一顺序串行执行的结果相一致。</p>
-<h3 id="1-3-Isolation-隔离性"><a href="#1-3-Isolation-隔离性" class="headerlink" title="1.3 Isolation 隔离性"></a>1.3 Isolation 隔离性</h3><p>并发执行的事务之间应该相互隔离，互不影响。事务的执行不受其他事务的干扰，事务执行的中间结果对其他事务必须是透明的。</p>
-<h3 id="1-4-Durability-持久性"><a href="#1-4-Durability-持久性" class="headerlink" title="1.4 Durability 持久性"></a>1.4 Durability 持久性</h3><p>事务一旦提交，对数据库的修改是永久性的，即使系统故障也能够保证数据的持久性。对于任意已提交事务，系统必须保证该事务对数据库的改变不被丢失，即使数据库出现故障。</p>
-<h2 id="2-数据库的隔离级别"><a href="#2-数据库的隔离级别" class="headerlink" title="2 数据库的隔离级别"></a>2 数据库的隔离级别</h2><h3 id="2-1-事务并发存在的问题"><a href="#2-1-事务并发存在的问题" class="headerlink" title="2.1 事务并发存在的问题"></a>2.1 事务并发存在的问题</h3><p>问题1：脏读<br>事务A读到了事务B还未提交的数据<br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img.png" alt="img.png"></p>
-<p>问题2：不可重复读<br>事务A在对同一条数据进行两次读取之间，事务B修改了这条数据并进行了完整提交，A事务的两次读取读到了两次不同的数据。<br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_1.png" alt="img_1.png"></p>
-<p>问题3：幻读<br>事务A在对同一集合数据进行两次读取之间，事务B在集合中增加或删除了部分数据，导致A事务的两次读取读到了数量不一致的行数据。<br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_2.png" alt="img_2.png"></p>
-<h3 id="2-2-隔离级别"><a href="#2-2-隔离级别" class="headerlink" title="2.2 隔离级别"></a>2.2 隔离级别</h3><p><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_4.png" alt="img_4.png"></p>
-<h2 id="3-Undo-Log"><a href="#3-Undo-Log" class="headerlink" title="3 Undo Log"></a>3 Undo Log</h2><p>Undo log是数据库实现事务回滚的关键。</p>
-<h3 id="3-1-写入时机"><a href="#3-1-写入时机" class="headerlink" title="3.1 写入时机"></a>3.1 写入时机</h3><p>SQL 经过执行器后，就会生成Undo Log并写入磁盘，之后再执行内存数据写入，记录Redo Log，数据刷盘等。<br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_5.png" alt="img_5.png"></p>
-<h3 id="3-2-Undo-Log格式"><a href="#3-2-Undo-Log格式" class="headerlink" title="3.2 Undo Log格式"></a>3.2 Undo Log格式</h3><p>每条Undo Log信息分为两个部分，基础信息和操作信息<br>基础信息包括Undo Log类型，表id等，操作信息根据Undo Log的类型不同会有所改变。</p>
-<h4 id="3-2-1-新增时的Undo-Log格式"><a href="#3-2-1-新增时的Undo-Log格式" class="headerlink" title="3.2.1 新增时的Undo Log格式"></a>3.2.1 新增时的Undo Log格式</h4><p>新增操作只需要记录主键值，主键长度等主键信息。<br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_6.png" alt="img_6.png"></p>
-<h4 id="3-2-2-删除时的Undo-Log格式"><a href="#3-2-2-删除时的Undo-Log格式" class="headerlink" title="3.2.2 删除时的Undo Log格式"></a>3.2.2 删除时的Undo Log格式</h4><p>删除操作的Undo Log除了主键信息外，还需要记录旧事务id，和旧的roll_pointer信息，用来构建有序的Undo版本链。<br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_7.png" alt="img_7.png"></p>
-<h4 id="3-2-3-更新时的Undo-Log格式"><a href="#3-2-3-更新时的Undo-Log格式" class="headerlink" title="3.2.3 更新时的Undo Log格式"></a>3.2.3 更新时的Undo Log格式</h4><p>更新操作的Undo Log操作信息，根据是否更新主键有所不同。<br>如果不更新主键，和删除操作类似，记录主键信息，旧事务id，旧的roll_pointer信息和被更新的信息。<br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_8.png" alt="img_8.png"><br><br>如果更新主键，则会记录两条Undo Log，一条删除的，一条新增的。<br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_9.png" alt="img_9.png"></p>
-<h4 id="3-2-4-Undo-Log页"><a href="#3-2-4-Undo-Log页" class="headerlink" title="3.2.4 Undo Log页"></a>3.2.4 Undo Log页</h4><p>Undo Page Header:记录Undo页类型，Log偏移位置，下一页链表引用等信息 <br><br>Undo Log Segment Header:记录回滚段信息 <br><br>Undo Log Header:事务相关信息，重用Undo页信息<br><br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_10.png" alt="img_10.png"></p>
-<p>如果一个事务很大，一个页记录不下，就会分为多个页存储Undo记录，用Undo Page Header里的下一页链表引用链接多个Undo页。<br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_11.png" alt="img_11.png"></p>
-<h3 id="3-3-Undo-Log和数据行的关系"><a href="#3-3-Undo-Log和数据行的关系" class="headerlink" title="3.3 Undo Log和数据行的关系"></a>3.3 Undo Log和数据行的关系</h3><h4 id="3-3-1-新增"><a href="#3-3-1-新增" class="headerlink" title="3.3.1 新增"></a>3.3.1 新增</h4><p>Insert Undo链中的每一条Undo Log都关联一条数据行，数据行中用roll_pointer关联Undo Log。<br><br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_12.png" alt="img_12.png"></p>
-<h4 id="3-3-2-更新和删除"><a href="#3-3-2-更新和删除" class="headerlink" title="3.3.2 更新和删除"></a>3.3.2 更新和删除</h4><p>每次更新，都会通过数据行中的roll_pointer进行关联，从而构成一条Undo Log版本链，回滚的时候就可以依序撤销。<br><br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_13.png" alt="img_13.png"></p>
-<h2 id="4-MVCC"><a href="#4-MVCC" class="headerlink" title="4 MVCC"></a>4 MVCC</h2><p>MVCC(multi-version concurrency control) 多版本并发控制机制<br>能解决脏读和不可重复度等事务之前的读写问题，同时其实现比锁机制更高效。</p>
-<p>MVCC的实现是基于[Undo Log版本链]和[Readview]达成的</p>
-<h3 id="4-1-Undo-Log版本链"><a href="#4-1-Undo-Log版本链" class="headerlink" title="4.1 Undo Log版本链"></a>4.1 Undo Log版本链</h3><p>每条Undo Log之间通过roll_pointer关联，数据行再用roll_pointer关联Undo Log，这样构成了Undo Log版本链<br><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_14.png" alt="img_14.png"><br>对于每一条记录，都有一个版本链，体现了这条记录的所有变更。</p>
-<h3 id="4-2-Readview"><a href="#4-2-Readview" class="headerlink" title="4.2 Readview"></a>4.2 Readview</h3><p>Readview是一个视图，一条Select命令，就会构造一个Readview，里面记录了该数据版本链的一些统计值。<br>统计信息：<br><br>1.当前所有活跃的事务集合m_ids，即统计所有没有提交的事务<br><br>2.集合中最小事务min_trx_id<br><br>3.下一个要被分配的事务max_trx_id<br><br>4.创建这个Readview的事务creator_trx_id<br></p>
-<p>判断当前事务读取版本链上的那一条记录，有一个四步原则<br><br>1.事务id是否等于creator_trx_id，如果是则可以访问<br><br>2.若事务id小于min_trx_id，则代表当前事务在Readview生成之前已提交，可以访问<br><br>3.若事务id大于max_trx_id，则代表该版本在Readview生成之后才开启，不可以访问，遍历下一个版本<br><br>4.若事务id不在活跃的事务集合m_ids中，代表创建Readview时该版本已提交，可以访问<br></p>
-<p><img src="/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/img_15.png" alt="img_15.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2024/03/31/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/" data-id="clunuzimx0000s0ut66ji2hkz" data-title="" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="http://example.com/2024/04/06/Database-Transaction/" data-id="clunvw2xy0001zkut78f092u5" data-title="Database Transaction" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -212,7 +160,7 @@
       
         <p>我如果爱你——<br>绝不像攀援的凌霄花，<br>借你的高枝炫耀自己；<br>我如果爱你——<br>绝不学痴情的鸟儿，<br>为绿荫重复单调的歌曲；<br>也不止像泉源，<br>常年送来清凉的慰藉；<br>也不止像险峰，<br>增加你的高度，衬托你的威仪。<br>甚至日光，<br>甚至春雨。</p>
 <p>不，这些都还不够！<br>我必须是你近旁的一株木棉，<br>作为树的形象和你站在一起。<br>根，紧握在地下；<br>叶，相触在云里。<br>每一阵风过，<br>我们都互相致意，<br>但没有人，<br>听懂我们的言语。<br>你有你的铜枝铁干，<br>像刀，像剑，也像戟；<br>我有我红硕的花朵，<br>像沉重的叹息，<br>又像英勇的火炬。</p>
-<h2 id="我们分担寒潮、风雷、霹雳；我们共享雾霭、流岚、虹霓。仿佛永远分离，却又终身相依。这才是伟大的爱情，坚贞就在这里：爱——不仅爱你伟岸的身躯，也爱你坚持的位置，足下的土地。"><a href="#我们分担寒潮、风雷、霹雳；我们共享雾霭、流岚、虹霓。仿佛永远分离，却又终身相依。这才是伟大的爱情，坚贞就在这里：爱——不仅爱你伟岸的身躯，也爱你坚持的位置，足下的土地。" class="headerlink" title="我们分担寒潮、风雷、霹雳；我们共享雾霭、流岚、虹霓。仿佛永远分离，却又终身相依。这才是伟大的爱情，坚贞就在这里：爱——不仅爱你伟岸的身躯，也爱你坚持的位置，足下的土地。"></a>我们分担寒潮、风雷、霹雳；<br>我们共享雾霭、流岚、虹霓。<br>仿佛永远分离，<br>却又终身相依。<br>这才是伟大的爱情，<br>坚贞就在这里：<br>爱——<br>不仅爱你伟岸的身躯，<br>也爱你坚持的位置，<br>足下的土地。<br>
+<h2 id="我们分担寒潮、风雷、霹雳；我们共享雾霭、流岚、虹霓。仿佛永远分离，却又终身相依。这才是伟大的爱情，坚贞就在这里：爱——不仅爱你伟岸的身躯，也爱你坚持的位置，足下的土地。"><a href="#我们分担寒潮、风雷、霹雳；我们共享雾霭、流岚、虹霓。仿佛永远分离，却又终身相依。这才是伟大的爱情，坚贞就在这里：爱——不仅爱你伟岸的身躯，也爱你坚持的位置，足下的土地。" class="headerlink" title="我们分担寒潮、风雷、霹雳；我们共享雾霭、流岚、虹霓。仿佛永远分离，却又终身相依。这才是伟大的爱情，坚贞就在这里：爱——不仅爱你伟岸的身躯，也爱你坚持的位置，足下的土地。"></a>我们分担寒潮、风雷、霹雳；<br>我们共享雾霭、流岚、虹霓。<br>仿佛永远分离，<br>却又终身相依。<br>这才是伟大的爱情，<br>坚贞就在这里：<br>爱——<br>不仅爱你伟岸的身躯，<br>也爱你坚持的位置，<br>足下的土地。<br></h2>
         
           <p class="article-more-link">
             <a href="/2024/03/02/Blog-1/#more">Read More</a>
@@ -221,7 +169,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2024/03/02/Blog-1/" data-id="clt9mjwwm0000awut8gugarn9" data-title="Blog 1" class="article-share-link"><span class="fa fa-share">分享</span></a>
+      <a data-url="http://example.com/2024/03/02/Blog-1/" data-id="clunvw2xv0000zkut01amgyxs" data-title="Blog 1" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -265,10 +213,6 @@
         
           <li>
             <a href="/2024/04/06/Database-Transaction/">Database Transaction</a>
-          </li>
-        
-          <li>
-            <a href="/2024/03/31/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1/">(no title)</a>
           </li>
         
           <li>
